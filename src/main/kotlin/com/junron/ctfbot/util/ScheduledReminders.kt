@@ -1,13 +1,11 @@
 package com.junron.ctfbot.util
 
-import com.github.shyiko.skedule.Schedule
 import com.jessecorbett.diskord.dsl.Bot
 import com.junron.ctfbot.model.Subscriber
-import com.junron.ctfbot.model.Time
-import java.time.LocalTime
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.*
-import kotlin.concurrent.fixedRateTimer
+import kotlin.concurrent.schedule
 
 class ScheduledReminders<T : Subscriber>(
     var subscribers: List<T>,
@@ -23,29 +21,32 @@ class ScheduledReminders<T : Subscriber>(
     fun updateSubscriptions(subscribers: List<T>) {
         this.subscribers = subscribers
         if (::timers.isInitialized) timers.forEach { it.cancel() }
-        val timings = mutableMapOf<Time, MutableList<T>>()
+        val timings = mutableMapOf<LocalDateTime, MutableList<T>>()
         subscribers.forEach { subscriber ->
-            subscriber.timings.forEach {
-                if (timings.containsKey(it)) {
-                    timings[it]?.plusAssign(subscriber)
+            subscriber.timings.forEach { timeLong ->
+                val time = LocalDateTime.ofEpochSecond(
+                    timeLong,
+                    0,
+                    ZoneOffset.ofHours(8)
+                )
+                if (timings.containsKey(time)) {
+                    timings[time]?.plusAssign(subscriber)
                 } else {
-                    timings[it] = mutableListOf(subscriber)
+                    timings[time] = mutableListOf(subscriber)
                 }
             }
         }
-        timers = timings.map { (time, subscribers) ->
-            fixedRateTimer(
-                uuid(),
-                false,
-                (Schedule.at(LocalTime.of(time.hour, time.minute))
-                    .everyDay()
-                    .next(ZonedDateTime.now())
-                    .toEpochSecond() - ZonedDateTime.now()
-                    .toEpochSecond()) * 1000,
-                8.64e+7.toLong()
-            ) {
-                subscribers.forEach {
-                    callback(it, bot)
+        timers = timings.mapNotNull { (time, subscribers) ->
+            val deltaMillis =
+                (time.toEpochSecond(ZoneOffset.UTC) - LocalDateTime.now()
+                    .toEpochSecond(ZoneOffset.UTC)) * 1000
+            println(deltaMillis)
+            if(deltaMillis<0) return@mapNotNull null
+            Timer(false).apply {
+                schedule(deltaMillis) {
+                    subscribers.forEach {
+                        callback(it, bot)
+                    }
                 }
             }
         }

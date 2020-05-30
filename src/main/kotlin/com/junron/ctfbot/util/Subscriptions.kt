@@ -53,11 +53,11 @@ object Subscriptions {
                             ?: return@command run {
                                 reply(unsubscribedMessage)
                             }
-                    reply("**Reminders**\n" + subscriber.timings.joinToString("\n") {
-                        "${it.hour.toString()
-                            .padStart(2, '0')}:${it.minute.toString()
-                            .padStart(2, '0')}"
-                    })
+//                    reply("**Reminders**\n" + subscriber.timings.joinToString("\n") {
+//                        "${it.hour.toString()
+//                            .padStart(2, '0')}:${it.minute.toString()
+//                            .padStart(2, '0')}"
+//                    })
                 }
             }
         }

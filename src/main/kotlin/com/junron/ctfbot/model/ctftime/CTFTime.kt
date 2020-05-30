@@ -22,4 +22,14 @@ object CTFTime {
             ignoreExtraJson.parse(CTF.serializer().list, stringResponse)
         }
     }
+
+    suspend fun fetchCTF(id: Int): CTF? {
+        val request = Request.Builder()
+            .url("https://ctftime.org/api/v1/events/$id/").build()
+        val result = client.newCall(request).await()
+        if (!result.isSuccessful || result.body == null) return null
+        return withContext(Dispatchers.IO) {
+            ignoreExtraJson.parse(CTF.serializer(), result.body!!.string())
+        }
+    }
 }

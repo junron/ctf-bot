@@ -42,7 +42,11 @@ data class CTF(
             authorImageUrl = logo
         }
         field("URL", this@CTF.url, false)
-        field("Timing", getTimings(), false)
+        field("Timing", getTimings()+"""
+            
+            React :alarm_clock: to be reminded 1 hour before the event.
+        """.trimIndent(), false)
+        field("CTFTime ID", id.toString(), false)
         footer("Hosted by ${this@CTF.organizers.joinToString(", ") {
             it.name
         }
