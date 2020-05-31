@@ -38,14 +38,27 @@ object CTFTime : Command {
                     reply("Here are the upcoming CTFs:")
                     ctfs.filter {
                         !it.onsite && it.restrictions == "Open"
-                    }.take(1).forEach {
+                    }.forEach {
                         val message = reply("", it.embed())
                         message.react("⏰")
                     }
                 }
+                command("archive") {
+                    if (guildId != "715868718156218449") return@command
+                    val currentCTFCategory = "715869115776237608"
+                    val archiveCategory = "715869152446906378"
+                    val channel =
+                        clientStore.guilds["715868718156218449"].getChannels()
+                            .first { it.id == channelId }
+                    if (channel.parentId != currentCTFCategory) return@command run {
+                        reply("Only CTF channels can be archived")
+                    }
+                    clientStore.channels[channelId].update(channel.copy(parentId = archiveCategory))
+                    reply("${channel.name} has been archived.")
+                }
             }
             reactionAdded { reaction ->
-                //   Ignore from bot
+                //   Ignore bot
                 if (reaction.userId == "716138599275298846") return@reactionAdded
                 val ctfId =
                     bot.clientStore.channels[reaction.channelId].getMessage(
@@ -62,6 +75,16 @@ object CTFTime : Command {
                     reaction.userId, ctf
                 )
                 subscribers += subscriber
+                reminders.updateSubscriptions(subscribers)
+            }
+            reactionRemoved { reaction ->
+                if (reaction.userId == "716138599275298846") return@reactionRemoved
+                val ctfId =
+                    bot.clientStore.channels[reaction.channelId].getMessage(
+                        reaction.messageId
+                    ).embeds.firstOrNull()?.fields?.firstOrNull { it.name == "CTFTime ID" }?.value?.toIntOrNull()
+                        ?: return@reactionRemoved
+                subscribers -= reaction.userId + ctfId
                 reminders.updateSubscriptions(subscribers)
             }
         }
