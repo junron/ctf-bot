@@ -4,16 +4,20 @@ import com.jessecorbett.diskord.api.rest.CreateMessage
 import com.jessecorbett.diskord.dsl.Bot
 import com.jessecorbett.diskord.dsl.CommandSet
 import com.jessecorbett.diskord.dsl.command
+import com.jessecorbett.diskord.util.words
+import com.joestelmach.natty.Parser
 import com.junron.ctfbot.model.ctftime.CTFSubscriber
 import com.junron.ctfbot.model.ctftime.CTFTime
 import com.junron.ctfbot.model.ctftime.CTFTime.fetchCTF
 import com.junron.ctfbot.util.ScheduledReminders
 import com.junron.ctfbot.util.dmUser
+import com.junron.ctfbot.util.isFuture
 import com.junron.ctfbot.util.reject
 import com.junron.pyrobase.jsoncache.Storage
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.UnstableDefault
 import java.time.ZoneOffset
+import java.util.*
 
 val subscribers = Storage("ctf_subscribers", CTFSubscriber.serializer())
 
@@ -31,10 +35,31 @@ object CTFTime : Command {
         with(bot) {
             with(prefix) {
                 command("upcoming") {
-                    val ctfs = CTFTime.fetchNextWeek() ?: return@command reject(
-                        this,
-                        "An unknown error occurred."
-                    )
+                    val parser = Parser()
+                    val input = words.drop(2).joinToString(" ").trim()
+
+                    val dateRange = if (input.isNotEmpty()) parser.parse(input)
+                        .firstOrNull()?.dates?.toMutableList()
+                        ?: mutableListOf() else mutableListOf()
+                    if (dateRange.isEmpty() && input.isNotEmpty()) {
+                        reply("$input doesn't seem like a valid date.")
+                        return@command
+                    }
+                    if (dateRange.any { !it.isFuture() }) {
+                        reply("Dates must be in the future")
+                        return@command
+                    }
+                    if (dateRange.size == 1) {
+                        dateRange.add(0, Date())
+                    }
+                    val ctfs = CTFTime.fetchDateRange(dateRange)
+                        ?: return@command reject(
+                            this,
+                            "An unknown error occurred."
+                        )
+                    if (ctfs.isEmpty()) return@command run {
+                        reply("There are no upcoming CTFs.")
+                    }
                     reply("Here are the upcoming CTFs:")
                     ctfs.filter {
                         !it.onsite && it.restrictions == "Open"

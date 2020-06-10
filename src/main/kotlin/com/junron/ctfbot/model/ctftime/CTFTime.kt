@@ -8,6 +8,7 @@ import kotlinx.serialization.builtins.list
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import ru.gildor.coroutines.okhttp.await
+import java.util.*
 
 @UnstableDefault
 object CTFTime {
@@ -15,9 +16,13 @@ object CTFTime {
 
     private val ctfCache = mutableMapOf<Int, CTF>()
 
-    suspend fun fetchNextWeek(): List<CTF>? {
+    suspend fun fetchDateRange(dateRange: List<Date>): List<CTF>? {
         val request = Request.Builder()
-            .url("https://ctftime.org/api/v1/events/").build()
+            .url(
+                "https://ctftime.org/api/v1/events/" +
+                    if (dateRange.size == 2) "?start=${dateRange[0].time / 1000}&finish=${dateRange[1].time / 1000}" else ""
+            )
+            .build()
         val result = client.newCall(request).await()
         if (!result.isSuccessful || result.body == null) return null
         return withContext(Dispatchers.IO) {

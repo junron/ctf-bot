@@ -33,8 +33,6 @@ data class CTF(
     @Transient
     val endTime = finish.toLocalDateTime()
     fun embed() = embed {
-        println(startTime)
-        println(start)
         title = this@CTF.title
         color = Colors.hex(0x1e88e5)
         description = this@CTF.description
