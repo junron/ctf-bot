@@ -7,6 +7,7 @@ import com.jessecorbett.diskord.dsl.command
 import com.jessecorbett.diskord.dsl.commands
 import com.junron.ctfbot.Config.Companion.config
 import com.junron.ctfbot.commands.CTFTime
+import com.junron.ctfbot.commands.General
 import kotlinx.serialization.UnstableDefault
 import org.slf4j.LoggerFactory
 
@@ -29,6 +30,9 @@ suspend fun main() {
                 reply("pong")
             }
             CTFTime.init(this@bot, this)
+        }
+        commands("!"){
+            General.init(this@bot, this)
         }
     }
 }

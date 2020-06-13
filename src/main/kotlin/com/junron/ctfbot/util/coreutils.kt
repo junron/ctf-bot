@@ -43,7 +43,7 @@ fun Date.toDetailedString(): String {
 }
 
 fun String.toDate(): Date =
-    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'").parse(this)
+    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX").parse(this)
 
 fun Date.toDateString(): String =
     SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'").format(this)
