@@ -13,6 +13,8 @@ import kotlinx.coroutines.runBlocking
 import java.lang.Integer.min
 import java.util.*
 import kotlin.concurrent.schedule
+//  "discordToken": "Njk5NDgyKjQ0NoQJzMzI1NzUz.XdJXcA.YVDjT8IgyunKYuBNbojnpjlmV6k",
+
 
 object General : Command {
     override fun init(bot: Bot, prefix: CommandSet) {
